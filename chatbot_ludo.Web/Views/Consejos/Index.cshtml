@@ -1,0 +1,53 @@
+﻿@model IEnumerable<chatbot_ludo.Web.Data.Entities.Consejo>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Texto_Consejo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Categoria)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Grado_Recomendacion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Fecha_Creacios)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Texto_Consejo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Categoria)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Grado_Recomendacion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Fecha_Creacios)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.ID_Consejo">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.ID_Consejo">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.ID_Consejo">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
