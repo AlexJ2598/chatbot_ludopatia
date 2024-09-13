@@ -1,30 +1,33 @@
 using chatbot_ludo.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
-// Agrega servicios al contenedor.
+
+// Agregar servicios al contenedor
 builder.Services.AddControllersWithViews();
 
-// Configuración de servicios (incluyendo Entity Framework Core)
+// Configurar Entity Framework Core para usar SQL Server
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+// Registrar SeedDB como servicio
+builder.Services.AddTransient<SeedDB>(); //Esto es para registrar la inyeccion de la clase en la base de datos. 
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Llamar a SeedAsync
+SeedData(app);
+
+// Configuración del pipeline de solicitudes HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseAuthorization();
@@ -34,3 +37,24 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Método para ejecutar SeedAsync
+void SeedData(IHost app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+
+        try
+        {
+            var seedDB = services.GetRequiredService<SeedDB>();
+            seedDB.SeedAsync().Wait();
+        }
+        catch (Exception ex)
+        {
+            // Aquí puedes manejar cualquier excepción que ocurra durante el seeding
+            Console.WriteLine("Ocurrió un error al inicializar la base de datos: " + ex.Message);
+        }
+    }
+}
+
