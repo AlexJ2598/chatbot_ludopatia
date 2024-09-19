@@ -14,6 +14,9 @@ builder.Services.AddDbContext<DataContext>(options =>
 // Registrar SeedDB como servicio
 builder.Services.AddTransient<SeedDB>(); //Esto es para registrar la inyeccion de la clase en la base de datos. 
 
+// Registrar Repository como un servicio Scoped
+builder.Services.AddScoped<IRepository, Repository>(); //Añadimos esta parte para inyectar la implementación de la clase Repository.
+
 var app = builder.Build();
 
 // Llamar a SeedAsync

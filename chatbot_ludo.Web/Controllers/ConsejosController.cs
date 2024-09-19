@@ -11,31 +11,33 @@
     using chatbot_ludo.Web.Data.Entities;
     public class ConsejosController : Controller
     {
-        private readonly DataContext _context;
+        //Vamos a quitar la inyeccion que hace el controlador para hacerlo desde la interface anteriormente hecha.
+        //Vamos a inyectar la interface para inyectar el repositorio.
+        private readonly IRepository repository; //Para que este disponible en todo el proyecto.
 
-        public ConsejosController(DataContext context)
+        public ConsejosController(IRepository repository)
         {
-            _context = context;
+            this.repository = repository;
         }
 
         // GET: Consejos
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-              return _context.Consejos != null ? 
-                          View(await _context.Consejos.ToListAsync()) :
+              return repository.GetConsejos() != null ? 
+                          //Usamos la interface para el retorno de los elementos.
+                          View(this.repository.GetConsejos()) :
                           Problem("Entity set 'DataContext.Consejos'  is null.");
         }
 
         // GET: Consejos/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
-            if (id == null || _context.Consejos == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = await _context.Consejos
-                .FirstOrDefaultAsync(m => m.ID_Consejo == id);
+            var consejo = this.repository.GetConsejo(id.Value); //Obtenemos el consejo por medio del metodo de getproducto por id.
             if (consejo == null)
             {
                 return NotFound();
@@ -51,30 +53,30 @@
         }
 
         // POST: Consejos/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID_Consejo,Texto_Consejo,Categoria,Grado_Recomendacion,Fecha_Creacios")] Consejo consejo)
+        public async Task<IActionResult> Create(Consejo consejo) //Quitamos el bind
         {
             if (ModelState.IsValid)
             {
-                _context.Add(consejo);
-                await _context.SaveChangesAsync();
+                //Quitamos las lineas de conexion directa.
+                this.repository.AddConsejo(consejo);
+                //Lo guardamos
+                await this.repository.SaveAllAsync(); //Metodo async se va a editar más adelante porque no debemos suponer
                 return RedirectToAction(nameof(Index));
             }
             return View(consejo);
         }
 
         // GET: Consejos/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
-            if (id == null || _context.Consejos == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = await _context.Consejos.FindAsync(id);
+            var consejo = this.repository.GetConsejo(id.Value);
             if (consejo == null)
             {
                 return NotFound();
@@ -83,27 +85,21 @@
         }
 
         // POST: Consejos/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID_Consejo,Texto_Consejo,Categoria,Grado_Recomendacion,Fecha_Creacios")] Consejo consejo)
+        public async Task<IActionResult> Edit(Consejo consejo)
         {
-            if (id != consejo.ID_Consejo)
-            {
-                return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(consejo);
-                    await _context.SaveChangesAsync();
+                    this.repository.UpdateConsejo(consejo);
+                    await this.repository.SaveAllAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ConsejoExists(consejo.ID_Consejo))
+                    if (!this.repository.ConsejoExists(consejo.ID_Consejo))
                     {
                         return NotFound();
                     }
@@ -118,15 +114,14 @@
         }
 
         // GET: Consejos/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
-            if (id == null || _context.Consejos == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = await _context.Consejos
-                .FirstOrDefaultAsync(m => m.ID_Consejo == id);
+            var consejo = this.repository.GetConsejo(id.Value);
             if (consejo == null)
             {
                 return NotFound();
@@ -140,23 +135,14 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Consejos == null)
-            {
-                return Problem("Entity set 'DataContext.Consejos'  is null.");
-            }
-            var consejo = await _context.Consejos.FindAsync(id);
+            var consejo = this.repository.GetConsejo(id);
             if (consejo != null)
             {
-                _context.Consejos.Remove(consejo);
+                this.repository.RemoveConsejo(consejo);
             }
             
-            await _context.SaveChangesAsync();
+            await this.repository.SaveAllAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ConsejoExists(int id)
-        {
-          return (_context.Consejos?.Any(e => e.ID_Consejo == id)).GetValueOrDefault();
         }
     }
 }
