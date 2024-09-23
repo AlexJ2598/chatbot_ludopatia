@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using chatbot_ludo.Web.Data;
 
@@ -11,9 +12,10 @@ using chatbot_ludo.Web.Data;
 namespace chatbot_ludo.Web.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240921012809_AddFacultadModel")]
+    partial class AddFacultadModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +50,6 @@ namespace chatbot_ludo.Web.Migrations
                         .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("ID_Consejo");
@@ -284,10 +285,8 @@ namespace chatbot_ludo.Web.Migrations
             modelBuilder.Entity("chatbot_ludo.Web.Data.Entities.Consejo", b =>
                 {
                     b.HasOne("chatbot_ludo.Web.Data.Entities.User", "User")
-                        .WithMany("Consejos")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .WithMany()
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
@@ -341,11 +340,6 @@ namespace chatbot_ludo.Web.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("chatbot_ludo.Web.Data.Entities.User", b =>
-                {
-                    b.Navigation("Consejos");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,9 +2,15 @@
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    public class Consejo
+    public class Consejo : IEntity
     {
         public int ID_Consejo {  get; set; } //Lave primaria
+        // Implementación de la interfaz IEntity con un mapeo hacia ID_Consejo. De esta manera no necesitamos cambiar ID_Consejo por Id
+        int IEntity.Id
+        {
+            get => ID_Consejo;
+            set => ID_Consejo = value;
+        }
         [MaxLength(250, ErrorMessage = "The field {0} only can contain {1} characters length.")] //Anotaciones para limitar el consejo a 150 caracteres max
         [Required] //Requerido. No puede haber consejos vacios.
         public string Texto_Consejo { get; set;}
@@ -15,22 +21,11 @@
 
         //Relacionamosla tabla de consejos con la de usuarios.
         public User User { get; set; } //Configuramos de uno a varios.
-
-        //Todo consejo lo crea un usuario. Un usuario tiene muchos consejos. -> Migramos. 
-        //Agregar una migración:
-            
-        //dotnet ef migrations add UpdateDataContextWithIdentity
-        //Actualizar la base de datos:
-        //dotnet ef database update
-
-        //Revisar base de datos, se añadieron las tablas de usuarios, roles, etc. Borrar tabla de consejos porque tiene llave foranea con User.
+        
+        // Clave foránea para la relación con el usuario
+        //[Required]  // Indica que la clave foránea es obligatoria. De momento no es requerida debido a que no tenemos usuario logeado.
+        public string UserId { get; set; }  // Clave foránea
 
 
-        //Para hacer los cambios en DB vamos a la consola, dir direccion del producto web 
-        //Corremos acorde a lo que modificamos: dotnet ef migrations add ModifyConsejos dotnet ef database update -- Porque modificamos consejos.
-        //Solo corremos cuando, por ejemplo, modificamos longitud (son migraciones)
-        //Nos equivocamos en la fecha, hacemos la migracion: dotnet ef migrations add RenameFechaCreacionColumn. Cada que hagamos una migracion nombramos,
-        //acorde a lo que modificamos, ver carpeta Migrations para más contexto.
-        //Cada que hagamos esto actualizamos: dotnet ef database update
     }
 }

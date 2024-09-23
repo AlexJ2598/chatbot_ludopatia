@@ -1,5 +1,6 @@
 using chatbot_ludo.Web.Data;
 using chatbot_ludo.Web.Data.Entities;
+using chatbot_ludo.Web.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,21 +32,11 @@ builder.Services.AddIdentity<User, IdentityRole>(cfg =>
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders(); // Agrega los proveedores de tokens por defecto para restablecimiento de contraseña, etc.
 
-//Explicación de los Cambios:
-//builder.Services.AddIdentity:
-//Aquí estamos registrando los servicios de Identity con las mismas configuraciones que antes.
-//cfg.User.RequireUniqueEmail = true: Requiere que cada usuario tenga un correo electrónico único.
-//cfg.Password.*: Estas configuraciones personalizan los requisitos de la contraseña.
-//AddEntityFrameworkStores<DataContext>:
-//Asocia Identity con Entity Framework Core y el contexto DataContext para que gestione el almacenamiento de los usuarios.
-//AddDefaultTokenProviders:
-//Esto agrega los proveedores de tokens por defecto que Identity usa para funcionalidades como el restablecimiento de contraseñas y la confirmación por correo electrónico.
-//Autenticación y Autorización:
-//app.UseAuthentication();: Este middleware asegura que las solicitudes de usuarios autenticados se procesen correctamente.
-//app.UseAuthorization();: Este middleware asegura que solo los usuarios con los permisos adecuados puedan acceder a ciertos recursos.
-
 // Registrar Repository como un servicio Scoped
-builder.Services.AddScoped<IRepository, Repository>(); //Añadimos esta parte para inyectar la implementación de la clase Repository.
+//builder.Services.AddScoped<IRepository, Repository>(); Se elimina porque ya no vamos a ocupar esa interface hecha especificamente para productos, ahora vamos a implementar las nuevas.
+builder.Services.AddScoped<IConsejoRepository, ConsejoRepository>(); //Vamos al controler para configurar esta parte. 
+builder.Services.AddScoped<IFacultadRepository, FacultadRepository>();
+builder.Services.AddScoped<IUserHelper, UserHelper>(); //Inyectamos la implementación para el user
 
 var app = builder.Build();
 

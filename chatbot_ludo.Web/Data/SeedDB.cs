@@ -3,20 +3,21 @@
     using System;
     using System.Linq;
     using System.Threading.Tasks;
+    using chatbot_ludo.Web.Helpers;
     using Entities;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.EntityFrameworkCore;
 
     public class SeedDB
     {
-        private readonly UserManager<User> userManager; //Para el manejo de usuarios.
         private readonly DataContext context;
+        private readonly IUserHelper userHelper; //Para inicializar el campo en el constructor.
 
         //Vamos a hacer una nueva inyeccion de datos.
-        public SeedDB(DataContext context, UserManager<User> userManager)
+        public SeedDB(DataContext context, IUserHelper userHelper) //Ya no haremos la inyeccion del UserManager, lo va a hacer el UserHelper
         {
             this.context = context;
-            this.userManager = userManager; //Lo pasamos al constructor.
+            this.userHelper = userHelper;
         }
 
         public async Task SeedAsync()
@@ -24,7 +25,7 @@
             await this.context.Database.MigrateAsync();
 
             //Creamos un usuario.
-            var user = await this.userManager.FindByEmailAsync("alexis.hernandez074@gmail.com");
+            var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com"); //La busqueda
             if (user == null)
             {
                 user = new User
@@ -36,7 +37,7 @@
                     PhoneNumber = "1234567890",
                 };
 
-                var result = await this.userManager.CreateAsync(user, "123456");  //Creamos el usuario con la contraseña 123456
+                var result = await this.userHelper.AddUserAsync(user, "123456");  //Creamos el usuario con la contraseña 123456. Usamos el AddUserAsync. Cambiamos la inyeccion.
                 if (result != IdentityResult.Success)
                 {
                     throw new InvalidOperationException("Could not create the user in seeder"); //Error.

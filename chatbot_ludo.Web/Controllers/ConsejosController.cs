@@ -7,37 +7,40 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
-    using chatbot_ludo.Web.Data;
-    using chatbot_ludo.Web.Data.Entities;
+    using Web.Data;
+    using Web.Data.Entities;
+    using Web.Helpers;
+
     public class ConsejosController : Controller
     {
-        //Vamos a quitar la inyeccion que hace el controlador para hacerlo desde la interface anteriormente hecha.
-        //Vamos a inyectar la interface para inyectar el repositorio.
-        private readonly IRepository repository; //Para que este disponible en todo el proyecto.
 
-        public ConsejosController(IRepository repository)
+        //Vamos a quitar la inyeccion que hace el controlador para hacerlo desde la interface anteriormente hecha.
+        //Vamos a inyectar la interface para inyectar el repositorio de consejo.
+
+        private readonly IConsejoRepository consejoRepository;
+        private readonly IUserHelper userHelper;
+
+        public ConsejosController(IConsejoRepository consejoRepository, IUserHelper userHelper) 
         {
-            this.repository = repository;
+            this.consejoRepository = consejoRepository;
+            this.userHelper = userHelper;
         }
 
         // GET: Consejos
         public IActionResult Index()
         {
-              return repository.GetConsejos() != null ? 
-                          //Usamos la interface para el retorno de los elementos.
-                          View(this.repository.GetConsejos()) :
-                          Problem("Entity set 'DataContext.Consejos'  is null.");
+            return View(this.consejoRepository.GetAll()); //Obtenemos todos los consejos. Ahora de esta manera debido a que estamos usando el repositorio generico.
         }
 
         // GET: Consejos/Details/5
-        public IActionResult Details(int? id)
+        public async Task <IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = this.repository.GetConsejo(id.Value); //Obtenemos el consejo por medio del metodo de getproducto por id.
+            var consejo = await this.consejoRepository.GetByIdAsync(id.Value); //Modificamos conforme el nombre de los metodos en el repositorio generico <t>
             if (consejo == null)
             {
                 return NotFound();
@@ -55,28 +58,59 @@
         // POST: Consejos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Consejo consejo) //Quitamos el bind
+        public async Task<IActionResult> Create(Consejo consejo)
         {
             if (ModelState.IsValid)
             {
-                //Quitamos las lineas de conexion directa.
-                this.repository.AddConsejo(consejo);
-                //Lo guardamos
-                await this.repository.SaveAllAsync(); //Metodo async se va a editar más adelante porque no debemos suponer
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    // Como no hay usuario autenticado, usamos el correo estático.
+                    var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
+
+                    // Verificamos que el usuario no sea null
+                    if (user == null)
+                    {
+                        ModelState.AddModelError("", "No se pudo encontrar el usuario con el correo estático proporcionado.");
+                        return View(consejo); // Regresamos la vista con el error.
+                    }
+
+                    // Asignar el usuario y la clave foránea UserId al consejo
+                    consejo.User = user;
+                    consejo.UserId = user.Id;  // Asignar el UserId del usuario
+
+                    // Guardar el consejo usando el repositorio genérico
+                    await this.consejoRepository.CreateAsync(consejo);
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Ocurrió un error al crear el consejo: {ex.Message}");
+                    return View(consejo); // Regresa la vista con el error mostrado
+                }
             }
-            return View(consejo);
+
+            // Si el modelo no es válido, mostramos los errores
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors)
+            {
+                Console.WriteLine(error.ErrorMessage); // Mostrar errores en la consola para ver qué está fallando
+            }
+
+            return View(consejo); // Devuelve la vista con el modelo y los errores de validación
         }
 
+
+
+
         // GET: Consejos/Edit/5
-        public IActionResult Edit(int? id)
+        public async Task <IActionResult> Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = this.repository.GetConsejo(id.Value);
+            var consejo = await this.consejoRepository.GetByIdAsync(id.Value);
             if (consejo == null)
             {
                 return NotFound();
@@ -94,12 +128,15 @@
             {
                 try
                 {
-                    this.repository.UpdateConsejo(consejo);
-                    await this.repository.SaveAllAsync();
+                    //TODO: Cambiar para usuarios logeados, estamos haciendo uno para pruebas unitarias.
+                    //Asignamos el usuario.
+                    consejo.User = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
+                    //Para editar es actualizacion
+                    await this.consejoRepository.UpdateAsync(consejo);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!this.repository.ConsejoExists(consejo.ID_Consejo))
+                    if (!await this.consejoRepository.ExistAsync(consejo.ID_Consejo))
                     {
                         return NotFound();
                     }
@@ -114,14 +151,14 @@
         }
 
         // GET: Consejos/Delete/5
-        public IActionResult Delete(int? id)
+        public async Task <IActionResult> Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var consejo = this.repository.GetConsejo(id.Value);
+            var consejo = await this.consejoRepository.GetByIdAsync(id.Value);
             if (consejo == null)
             {
                 return NotFound();
@@ -135,14 +172,10 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var consejo = this.repository.GetConsejo(id);
-            if (consejo != null)
-            {
-                this.repository.RemoveConsejo(consejo);
-            }
-            
-            await this.repository.SaveAllAsync();
+            var consejo = await this.consejoRepository.GetByIdAsync(id);
+            await this.consejoRepository.DeleteAsync(consejo); //Borramos. Con eso hicimos todas las modificaciones.
             return RedirectToAction(nameof(Index));
+
         }
     }
 }

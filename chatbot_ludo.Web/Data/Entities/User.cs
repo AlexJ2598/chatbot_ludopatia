@@ -9,5 +9,8 @@
 
         public string LastName { get; set; }
 
+        // Relación de uno a muchos con Consejo
+        public ICollection<Consejo> Consejos { get; set; }  // Un usuario puede tener varios consejos
+
     }
 }
