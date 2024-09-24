@@ -60,34 +60,36 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Consejo consejo)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Como no hay usuario autenticado, usamos el correo estático.
+                var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
+
+                // Verificamos que el usuario no sea null
+                if (user == null)
                 {
-                    // Como no hay usuario autenticado, usamos el correo estático.
-                    var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
-
-                    // Verificamos que el usuario no sea null
-                    if (user == null)
-                    {
-                        ModelState.AddModelError("", "No se pudo encontrar el usuario con el correo estático proporcionado.");
-                        return View(consejo); // Regresamos la vista con el error.
-                    }
-
-                    // Asignar el usuario y la clave foránea UserId al consejo
-                    consejo.User = user;
-                    consejo.UserId = user.Id;  // Asignar el UserId del usuario
-
-                    // Guardar el consejo usando el repositorio genérico
-                    await this.consejoRepository.CreateAsync(consejo);
-                    return RedirectToAction(nameof(Index));
+                    ModelState.AddModelError("", "No se pudo encontrar el usuario con el correo estático proporcionado.");
+                    return View(consejo); // Regresamos la vista con el error.
                 }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", $"Ocurrió un error al crear el consejo: {ex.Message}");
-                    return View(consejo); // Regresa la vista con el error mostrado
-                }
+
+                // Asignar el usuario y la clave foránea UserId al consejo
+                consejo.User = user;
+                consejo.UserId = user.Id;  // Asignar el UserId del usuario
+
+                // Guardar el consejo usando el repositorio genérico
+                await this.consejoRepository.CreateAsync(consejo);
+                return RedirectToAction(nameof(Index));
             }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Ocurrió un error al crear el consejo: {ex.Message}");
+                return View(consejo); // Regresa la vista con el error mostrado
+            }
+            //TODO: Validar la opción del Modelo porque no está obteniendo el usuario antes de valdiar.
+            //if (ModelState.IsValid)
+            //{
+
+            //}
 
             // Si el modelo no es válido, mostramos los errores
             var errors = ModelState.Values.SelectMany(v => v.Errors);
@@ -123,29 +125,30 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Consejo consejo)
         {
-
-            if (ModelState.IsValid)
+            //TODO: Misma situacion que crear. 
+            //if (ModelState.IsValid)
+            //{
+                
+            //    return RedirectToAction(nameof(Index));
+            //}
+            try
             {
-                try
+                //TODO: Cambiar para usuarios logeados, estamos haciendo uno para pruebas unitarias.
+                //Asignamos el usuario.
+                consejo.User = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
+                //Para editar es actualizacion
+                await this.consejoRepository.UpdateAsync(consejo);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await this.consejoRepository.ExistAsync(consejo.ID_Consejo))
                 {
-                    //TODO: Cambiar para usuarios logeados, estamos haciendo uno para pruebas unitarias.
-                    //Asignamos el usuario.
-                    consejo.User = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
-                    //Para editar es actualizacion
-                    await this.consejoRepository.UpdateAsync(consejo);
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!await this.consejoRepository.ExistAsync(consejo.ID_Consejo))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(consejo);
         }

@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Entities;
+    using Microsoft.CodeAnalysis;
     using Microsoft.EntityFrameworkCore;
 
     public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity //Implementamos la interface Generica de T.
@@ -21,10 +22,19 @@
 
         public async Task<T> GetByIdAsync(int id)
         {
+            //Si todas las entidades implementan la interfaz IEntity
+            //y tienen una propiedad de clave primaria diferente(como ID_Consejo en lugar de Id), se hace un enfoque más general.
+            //Explicacion: 
+            //FindEntityType(typeof(T)): Obtiene la metadata de la entidad T para encontrar cuál es la clave primaria.
+            //FindPrimaryKey().Properties[0].Name: Recupera el nombre de la propiedad clave primaria(en el caso de Consejo, sería ID_Consejo).
+            //EF.Property<int>(e, keyName): Permite hacer la consulta utilizando la clave primaria correcta para la entidad.
+            var keyName = this.context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
+
             return await this.context.Set<T>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefaultAsync(e => EF.Property<int>(e, keyName) == id);
         }
+
 
         public async Task CreateAsync(T entity)
         {
@@ -46,9 +56,12 @@
 
         public async Task<bool> ExistAsync(int id)
         {
-            return await this.context.Set<T>().AnyAsync(e => e.Id == id);
+            var keyName = this.context.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties[0].Name;
 
+            return await this.context.Set<T>()
+                .AnyAsync(e => EF.Property<int>(e, keyName) == id);
         }
+
 
         public async Task<bool> SaveAllAsync()
         {
