@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using chatbot_ludo.Web.Models;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
@@ -58,8 +59,10 @@
         // POST: Consejos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Consejo consejo)
+        public async Task<IActionResult> Create(ConsejoViewModel view) //Recordemos que ahora ya no es con Entitie, si no con el ViewModel.
         {
+            //Convertimos la vista a consejo.
+            var consejo = this.ToConsejo(view);
             try
             {
                 // Como no hay usuario autenticado, usamos el correo estático.
@@ -92,13 +95,28 @@
             //}
 
             // Si el modelo no es válido, mostramos los errores
-            var errors = ModelState.Values.SelectMany(v => v.Errors);
-            foreach (var error in errors)
-            {
-                Console.WriteLine(error.ErrorMessage); // Mostrar errores en la consola para ver qué está fallando
-            }
+            //var errors = ModelState.Values.SelectMany(v => v.Errors);
+            //foreach (var error in errors)
+            //{
+            //    Console.WriteLine(error.ErrorMessage); // Mostrar errores en la consola para ver qué está fallando
+            //}
 
-            return View(consejo); // Devuelve la vista con el modelo y los errores de validación
+            //return View(consejo); // Devuelve la vista con el modelo y los errores de validación
+        }
+
+        private Consejo ToConsejo(ConsejoViewModel view)
+        {
+            //Transformamos.
+            return new Consejo
+            {
+                ID_Consejo = view.ID_Consejo,
+                Texto_Consejo = view.Texto_Consejo,
+                Categoria = view.Categoria,
+                Grado_Recomendacion = view.Grado_Recomendacion,
+                Fecha_Creacion = view.Fecha_Creacion,
+                User = view.User,
+                UserId = view.UserId,
+            };
         }
 
 
