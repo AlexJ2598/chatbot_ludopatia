@@ -8,6 +8,7 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Metadata.Internal;
     using Web.Data;
     using Web.Data.Entities;
     using Web.Helpers;
@@ -135,31 +136,48 @@
             {
                 return NotFound();
             }
-            return View(consejo);
+            //Vamos aquí a hacer lo contrario a crear, osea, convertir el producto a vista, no a producto.
+            var view = this.ToConsejoViewModel(consejo);
+            return View(view);
+        }
+
+        private ConsejoViewModel ToConsejoViewModel(Consejo consejo)
+        {
+            //Se hace lo mismo, solo que en lugar de convertir a objeto consejo convertimos a vista.
+            return new ConsejoViewModel
+            {
+                ID_Consejo = consejo.ID_Consejo,
+                Texto_Consejo = consejo.Texto_Consejo,
+                Categoria = consejo.Categoria,
+                Grado_Recomendacion = consejo.Grado_Recomendacion,
+                Fecha_Creacion = consejo.Fecha_Creacion,
+                User = consejo.User,
+                UserId = consejo.UserId,
+            };
         }
 
         // POST: Consejos/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Consejo consejo)
+        public async Task<IActionResult> Edit(ConsejoViewModel view)
         {
-            //TODO: Misma situacion que crear. 
-            //if (ModelState.IsValid)
-            //{
-                
-            //    return RedirectToAction(nameof(Index));
-            //}
+            // Convertimos la vista a consejo.
+            var consejo = this.ToConsejo(view);
+
             try
             {
-                //TODO: Cambiar para usuarios logeados, estamos haciendo uno para pruebas unitarias.
-                //Asignamos el usuario.
+                // TODO: Cambiar para usuarios logeados, estamos usando un usuario para pruebas unitarias.
                 consejo.User = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
-                //Para editar es actualizacion
+
+                // Actualizamos el consejo
                 await this.consejoRepository.UpdateAsync(consejo);
+
+                // Redirigir al Index después de actualizar. De esta manera vemos reflejados los cambios.
+                return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await this.consejoRepository.ExistAsync(consejo.ID_Consejo))
+                if (!await this.consejoRepository.ExistAsync(view.ID_Consejo))
                 {
                     return NotFound();
                 }
@@ -168,8 +186,11 @@
                     throw;
                 }
             }
-            return View(consejo);
+
+            // Si hay algún error en el modelo, regresa a la vista de edición con el modelo actual
+            return View(view);
         }
+
 
         // GET: Consejos/Delete/5
         public async Task <IActionResult> Delete(int? id)

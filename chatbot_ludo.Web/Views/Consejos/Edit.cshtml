@@ -1,4 +1,4 @@
-﻿@model chatbot_ludo.Web.Data.Entities.Consejo
+﻿@model chatbot_ludo.Web.Models.ConsejoViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -11,6 +11,7 @@
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
+            <!--enctype="multipart/form-data" es para que acepte imagenes, no lo vamos a ocupar. hasta tener una vista con imagenes.-->
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="ID_Consejo" />
             <div class="form-group">
