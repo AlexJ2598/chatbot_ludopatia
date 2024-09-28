@@ -31,7 +31,7 @@
         // GET: Consejos
         public IActionResult Index()
         {
-            return View(this.consejoRepository.GetAll()); //Obtenemos todos los consejos. Ahora de esta manera debido a que estamos usando el repositorio generico.
+            return View(this.consejoRepository.GetAll().OrderBy(c => c.Texto_Consejo)); //Ordenamos por orden alfabetico.
         }
 
         // GET: Consejos/Details/5

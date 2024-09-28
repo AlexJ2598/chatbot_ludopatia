@@ -1,23 +1,28 @@
+using System.Text.Json.Serialization;  // Añadir la referencia para el manejo de ciclos
 using chatbot_ludo.Web.Data;
 using chatbot_ludo.Web.Data.Entities;
 using chatbot_ludo.Web.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Agregar servicios al contenedor
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // Configurar el manejador de referencias cíclicas
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve; //Agremaos para evitar referencias ciclicas.
+        options.JsonSerializerOptions.WriteIndented = true;  // Opcional, para hacer el JSON más legible
+    });
 
 // Configurar Entity Framework Core para usar SQL Server
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Registrar SeedDB como servicio
-builder.Services.AddTransient<SeedDB>(); //Esto es para registrar la inyeccion de la clase en la base de datos. 
+builder.Services.AddTransient<SeedDB>();  // Inyección de la clase para inicializar datos
 
-//Añadimos el manejo de usuarios en cuanto a las restricciones que necesitan las contraseñas:
 // Configurar Identity con personalizaciones
 builder.Services.AddIdentity<User, IdentityRole>(cfg =>
 {
@@ -27,16 +32,15 @@ builder.Services.AddIdentity<User, IdentityRole>(cfg =>
     cfg.Password.RequireLowercase = false;
     cfg.Password.RequireNonAlphanumeric = false;
     cfg.Password.RequireUppercase = false;
-    cfg.Password.RequiredLength = 6; //Minimo de 6 caracteres o longitud
+    cfg.Password.RequiredLength = 6;  // Longitud mínima de la contraseña
 })
 .AddEntityFrameworkStores<DataContext>()
-.AddDefaultTokenProviders(); // Agrega los proveedores de tokens por defecto para restablecimiento de contraseña, etc.
+.AddDefaultTokenProviders();
 
 // Registrar Repository como un servicio Scoped
-//builder.Services.AddScoped<IRepository, Repository>(); Se elimina porque ya no vamos a ocupar esa interface hecha especificamente para productos, ahora vamos a implementar las nuevas.
-builder.Services.AddScoped<IConsejoRepository, ConsejoRepository>(); //Vamos al controler para configurar esta parte. 
+builder.Services.AddScoped<IConsejoRepository, ConsejoRepository>();
 builder.Services.AddScoped<IFacultadRepository, FacultadRepository>();
-builder.Services.AddScoped<IUserHelper, UserHelper>(); //Inyectamos la implementación para el user
+builder.Services.AddScoped<IUserHelper, UserHelper>();  // Inyectar IUserHelper
 
 var app = builder.Build();
 
@@ -54,8 +58,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseAuthentication(); // Agrega el middleware para la autenticación
-app.UseAuthorization();  // Agrega el middleware para la autorización
+app.UseAuthentication();  // Agregar el middleware para la autenticación
+app.UseAuthorization();   // Agregar el middleware para la autorización
 
 app.MapControllerRoute(
     name: "default",
@@ -77,9 +81,9 @@ void SeedData(IHost app)
         }
         catch (Exception ex)
         {
-            // Aquí puedes manejar cualquier excepción que ocurra durante el seeding
             Console.WriteLine("Ocurrió un error al inicializar la base de datos: " + ex.Message);
         }
     }
 }
+
 

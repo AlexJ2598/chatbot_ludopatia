@@ -20,7 +20,7 @@
         {
             //Podemos hacer las solicitudes en POSTMAN para validar.
             //https://localhost:7197/api/Consejos cambiar direccion en localhost para hacer el metodo GET en POSTMAN.Nos devuelve esto los JSON.
-            return Ok(this.consejoRepository.GetAll()); //Mapeamos para obtener todos por medio del metodo antes programado. Al hacerlo en la API nos devuelve un JSON.
+            return Ok(this.consejoRepository.GetAllWithUser()); //De esta manera en la API obtenemos los objetos con el usuario. No lo hacemos en el controller porque no se está ocupando.
         }
     }
 }
