@@ -14,9 +14,10 @@
         }
 
         //Lo podemos ordenar del otro lado. Retorna con usuarios.
-        public IQueryable GetAllWithUser()
+        public IQueryable<Consejo> GetAllWithUser()
         {
             return this.context.Consejos.Include(c => c.User);
         }
+
     }
 }

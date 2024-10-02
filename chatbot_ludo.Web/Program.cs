@@ -12,7 +12,7 @@ builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
         // Configurar el manejador de referencias cíclicas
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve; //Agremaos para evitar referencias ciclicas.
+        options.JsonSerializerOptions.ReferenceHandler = null; //La eliminamos ya que estructuramos con DTO.
         options.JsonSerializerOptions.WriteIndented = true;  // Opcional, para hacer el JSON más legible
     });
 

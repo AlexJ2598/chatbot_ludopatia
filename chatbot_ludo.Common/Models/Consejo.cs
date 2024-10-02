@@ -1,16 +1,10 @@
 ﻿namespace chatbot_ludo.Common.Models
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Newtonsoft.Json;
+
     public class Consejo
     {
-        [JsonProperty("$id")]
-        public long Id { get; set; }
-
         [JsonProperty("iD_Consejo")]
         public long IDConsejo { get; set; }
 
@@ -26,10 +20,11 @@
         [JsonProperty("fecha_Creacion")]
         public DateTimeOffset FechaCreacion { get; set; }
 
-        [JsonProperty("user")]
-        public User User { get; set; }
+        [JsonProperty("userName")]
+        public string UserName { get; set; }
 
-        [JsonProperty("userId")]
-        public Guid UserId { get; set; }
+        [JsonProperty("userEmail")]
+        public string UserEmail { get; set; }
     }
 }
+

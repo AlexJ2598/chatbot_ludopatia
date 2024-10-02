@@ -1,9 +1,12 @@
-﻿namespace chatbot_ludo.Web.Data
+﻿
+namespace chatbot_ludo.Web.Data
 {
     using Entities;
-    public interface IConsejoRepository :IGenericRepository<Consejo> //La interface de consejo va a hacer una implementación de la interface generica. Va a devolver consejos.
+    using System.Linq;
+    public interface IConsejoRepository : IGenericRepository<Consejo>
     {
-        //Vamos a añadir los metodos personalizados. Metodos que le van a servir a Consejo, no al resto de cosas.
-        IQueryable GetAllWithUser(); //Este metodo lo crea en el repositorio.
+        // Método que devuelve todos los consejos junto con los usuarios
+        IQueryable<Consejo> GetAllWithUser(); // Cambiamos a IQueryable<Consejo>
     }
 }
+

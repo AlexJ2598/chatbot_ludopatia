@@ -1,26 +1,43 @@
 ﻿namespace chatbot_ludo.Web.Controllers.API
 {
     using chatbot_ludo.Web.Data;
+    using chatbot_ludo.Web.DTO; //Para simplificar el consumo de JSON
     using Microsoft.AspNetCore.Mvc;
+    using System.Linq;
 
-    [Route("api/[Controller]")] //Ruteamos, cuando se publique el sitio web la direccion es api/controlador.
+    [Route("api/[Controller]")]
     public class ConsejosController : Controller
     {
-        private readonly IConsejoRepository consejoRepository; //Inicializamos la interfaz.
+        private readonly IConsejoRepository consejoRepository;
 
-        //Inyectamos el repositorio por medio del constructor.
-        public ConsejosController(IConsejoRepository consejoRepository) //Inyectamos por medio de la interface.
+        public ConsejosController(IConsejoRepository consejoRepository)
         {
             this.consejoRepository = consejoRepository;
         }
 
-        //Metodo para obtener los consejos:
-        [HttpGet] //Get del controlador
-        public IActionResult GetConsejos() 
+        [HttpGet]
+        public IActionResult GetConsejos()
         {
-            //Podemos hacer las solicitudes en POSTMAN para validar.
-            //https://localhost:7197/api/Consejos cambiar direccion en localhost para hacer el metodo GET en POSTMAN.Nos devuelve esto los JSON.
-            return Ok(this.consejoRepository.GetAllWithUser()); //De esta manera en la API obtenemos los objetos con el usuario. No lo hacemos en el controller porque no se está ocupando.
+            // Obtenemos todos los consejos con el usuario asociado
+            var consejos = this.consejoRepository.GetAllWithUser();
+
+            // Mapeamos cada Consejo a ConsejoDTO
+            var consejosDTO = consejos.Select(c => new ConsejoDTO
+            {
+                ID_Consejo = c.ID_Consejo,
+                Texto_Consejo = c.Texto_Consejo,
+                Categoria = c.Categoria,
+                Grado_Recomendacion = c.Grado_Recomendacion,
+                Fecha_Creacion = c.Fecha_Creacion,
+                UserName = c.User.UserName,  // Tomamos solo el nombre del usuario
+                UserEmail = c.User.Email      // Mapeo del correo electrónico del usuario
+            }).ToList();
+
+            // Devolvemos la lista de ConsejoDTOs como resultado de la API
+            return Ok(consejosDTO);
         }
     }
 }
+
+
+
