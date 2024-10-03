@@ -1,0 +1,14 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:chatbot_ludo.UIMAUI"
+             xmlns:infra="clr-namespace:chatbot_ludo.UIMAUI.Infrastructure"
+             x:Class="chatbot_ludo.UIMAUI.App">
+    <Application.Resources>
+        <!--Nuestro diccionario de recursos-->
+        <ResourceDictionary>
+            <!--Locator-->
+            <infra:InstanceLocator x:Key="Locator"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

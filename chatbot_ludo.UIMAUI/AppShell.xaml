@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="chatbot_ludo.UIMAUI.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:chatbot_ludo.UIMAUI.Views" 
+    Shell.FlyoutBehavior="Disabled"
+    Title="chatbot_ludo.UIMAUI">
+
+    <!-- Apuntar a LoginPage como la página principal -->
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate local:LoginPage}"
+        Route="LoginPage" />
+
+</Shell>
+
