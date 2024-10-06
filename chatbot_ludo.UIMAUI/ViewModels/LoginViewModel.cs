@@ -1,6 +1,7 @@
 ﻿namespace chatbot_ludo.UIMAUI.ViewModels
 {
     using System.Windows.Input;
+    using chatbot_ludo.UIMAUI.Views;
     using CommunityToolkit.Mvvm.ComponentModel; //CommunityToolkit.Mvvm instalar en lugar del Mvvm.Light.Libs.Std
     using CommunityToolkit.Mvvm.Input;
 
@@ -46,7 +47,10 @@
                 await Application.Current.MainPage.DisplayAlert("Error", "Email or Password Incorrect.", "Accept");
                 return;
             }
-            await Application.Current.MainPage.DisplayAlert("Ok", "Todo correcto", "Accept");
+            //await Application.Current.MainPage.DisplayAlert("Ok", "Todo correcto", "Accept");
+            //Cada que tiremos la Pagina instanciamos la ViewModel, así como ligarla. Se modifica MainViewModel para poder instanciar.
+            MainViewModel.GetInstance().Consejos = new ConsejosViewModel(); //Con esto cargamos los objetos en memoria
+            await Application.Current.MainPage.Navigation.PushAsync(new ConsejosPage()); //Apilamos la Pagina. 
         }
     }
 }

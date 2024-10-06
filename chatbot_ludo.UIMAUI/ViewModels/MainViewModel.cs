@@ -8,12 +8,24 @@
 
     public class MainViewModel // Para controlar el resto de las ViewModels.
     {
+        private static MainViewModel instance; //Creamos un apuntador.
         public LoginViewModel Login { get; set; }
+        public ConsejosViewModel Consejos { get; set; }
 
-        // Instanciamos, luego cambiamos, mala práctica.
+        // Instanciamos.
         public MainViewModel()
         {
-            this.Login = new LoginViewModel(); // Solamente porque arranca. Luego lo cambiamos.
+            instance = this;
+        }
+
+        //Devolvemos la instancia.
+        public static MainViewModel GetInstance()
+        {
+            if (instance == null)
+            {
+                return new MainViewModel();
+            }
+            return instance;
         }
     }
 }
