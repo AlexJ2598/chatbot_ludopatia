@@ -2,16 +2,48 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="chatbot_ludo.UIMAUI.Views.ConsejosPage"
+             BackgroundColor="#f0f0f5"
              BindingContext="{Binding Main.Consejos, Source={StaticResource Locator}}"
              Title="Consejos">
     <ContentPage.Content>
-        <StackLayout
-            Padding="8">
-            <ListView
-                HasUnevenRows="True"
-                ItemsSource="{Binding Consejos}">
-                
-            </ListView>
+        <StackLayout Padding="10">
+            <!-- RefreshView para hacer pull-to-refresh -->
+            <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+                <!--Más eficiente CollectionView que ListView-->
+                <CollectionView ItemsSource="{Binding Consejos}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Padding="10" RowSpacing="10">
+                                <Frame BackgroundColor="White" CornerRadius="10" Padding="15" HasShadow="True">
+                                    <StackLayout VerticalOptions="Center">
+                                        <!-- Título del consejo -->
+                                        <Label FontAttributes="Bold"
+                                               FontSize="Large"
+                                               Text="{Binding TextoConsejo}"
+                                               TextColor="#333"
+                                               Margin="0,0,0,5" />
+
+                                        <!-- Categoría -->
+                                        <Label FontAttributes="Italic"
+                                               FontSize="Medium"
+                                               Text="{Binding Categoria}"
+                                               TextColor="#ff6347"
+                                               Margin="0,0,0,5" />
+
+                                        <!-- Grado de recomendación -->
+                                        <Label FontSize="Small"
+                                               Text="{Binding GradoRecomendacion, StringFormat='Grado: {0}'}"
+                                               TextColor="#808080" />
+                                    </StackLayout>
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </RefreshView>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
+
+
+

@@ -25,6 +25,12 @@
 
         [JsonProperty("userEmail")]
         public string UserEmail { get; set; }
+
+        //Nos pinta el toString de la clase Consejo.
+        public override string ToString()
+        {
+            return $"{this.TextoConsejo}, {this.Categoria}, {this.GradoRecomendacion}"; //Pintamos ahora
+        }
     }
 }
 
