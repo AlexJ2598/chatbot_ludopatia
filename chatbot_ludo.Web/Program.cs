@@ -26,7 +26,7 @@ builder.Services.AddTransient<SeedDB>();  // Inyección de la clase para iniciali
 // Configurar Identity con personalizaciones
 builder.Services.AddIdentity<User, IdentityRole>(cfg =>
 {
-    cfg.User.RequireUniqueEmail = true;
+    cfg.User.RequireUniqueEmail = false;
     cfg.Password.RequireDigit = false;
     cfg.Password.RequiredUniqueChars = 0;
     cfg.Password.RequireLowercase = false;

@@ -1,7 +1,27 @@
 ﻿namespace chatbot_ludo.Web.Models
 {
-    using Data.Entities;
-    public class ConsejoViewModel : Consejo //Indicamos que va a ser una extensión del Entitie de Consejo. Todo lo que contiene consejo lo tiene ya ConsejoViewModel.
+
+    using System;
+    using System.ComponentModel.DataAnnotations;
+
+    public class ConsejoViewModel
     {
+        public int ID_Consejo { get; set; }
+
+        [Required]
+        [MaxLength(250, ErrorMessage = "The field {0} only can contain {1} characters length.")]
+        public string Texto_Consejo { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Categoria { get; set; }
+
+        [Required]
+        public int Grado_Recomendacion { get; set; }
+
+        [Required]
+        public DateTime Fecha_Creacion { get; set; }
+
     }
 }
+

@@ -33,6 +33,16 @@
                 .WithMany(u => u.Consejos)  // Un usuario tiene muchos consejos
                 .HasForeignKey(c => c.UserId)  // Clave foránea en la tabla Consejo
                 .OnDelete(DeleteBehavior.Restrict);  // Evita la eliminación en cascada si es necesario
+            // Evitar eliminación en cascada en todas las relaciones
+            var cascadeFKs = modelBuilder.Model
+                .GetEntityTypes()
+                .SelectMany(t => t.GetForeignKeys())
+                .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade); //De está manera no borramos los Consejos si elimininamos un usuario que haya cargado.
+
+            foreach (var fk in cascadeFKs)
+            {
+                fk.DeleteBehavior = DeleteBehavior.Restrict;
+            }
             //Configuraciones adicionales. 
         }
     }

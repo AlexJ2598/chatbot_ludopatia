@@ -11,7 +11,7 @@
     public class ConsejosViewModel : BaseViewModel
     {
         private readonly ApiService apiService;
-        private ObservableCollection<Consejo> consejos;
+        private ObservableCollection<Consejo> consejos; 
         private bool isRefreshing; //Es para refrescar
 
         public ObservableCollection<Consejo> Consejos

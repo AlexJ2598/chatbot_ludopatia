@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using chatbot_ludo.Web.Models;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@
     using Web.Data.Entities;
     using Web.Helpers;
 
+    [Authorize] //Para que solo tengan acceso los usuarios logeados.
     public class ConsejosController : Controller
     {
 
@@ -60,67 +62,54 @@
         // POST: Consejos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ConsejoViewModel view) //Recordemos que ahora ya no es con Entitie, si no con el ViewModel.
+        public async Task<IActionResult> Create(ConsejoViewModel view)
         {
-            //Convertimos la vista a consejo.
+            if (!ModelState.IsValid)
+            {
+                return View(view);
+            }
+
+            // Convertimos el ViewModel a entidad Consejo, pero sin User ni UserId
             var consejo = this.ToConsejo(view);
+
+            // Asignar el usuario actual logueado
+            var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "No se pudo encontrar el usuario.");
+                return View(view);
+            }
+
+            // Asignar el usuario y el UserId al consejo
+            consejo.User = user;
+            consejo.UserId = user.Id;
+
             try
             {
-                // Como no hay usuario autenticado, usamos el correo estático.
-                var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
-
-                // Verificamos que el usuario no sea null
-                if (user == null)
-                {
-                    ModelState.AddModelError("", "No se pudo encontrar el usuario con el correo estático proporcionado.");
-                    return View(consejo); // Regresamos la vista con el error.
-                }
-
-                // Asignar el usuario y la clave foránea UserId al consejo
-                consejo.User = user;
-                consejo.UserId = user.Id;  // Asignar el UserId del usuario
-
-                // Guardar el consejo usando el repositorio genérico
                 await this.consejoRepository.CreateAsync(consejo);
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", $"Ocurrió un error al crear el consejo: {ex.Message}");
-                return View(consejo); // Regresa la vista con el error mostrado
+                return View(view);
             }
-            //TODO: Validar la opción del Modelo porque no está obteniendo el usuario antes de valdiar.
-            //if (ModelState.IsValid)
-            //{
-
-            //}
-
-            // Si el modelo no es válido, mostramos los errores
-            //var errors = ModelState.Values.SelectMany(v => v.Errors);
-            //foreach (var error in errors)
-            //{
-            //    Console.WriteLine(error.ErrorMessage); // Mostrar errores en la consola para ver qué está fallando
-            //}
-
-            //return View(consejo); // Devuelve la vista con el modelo y los errores de validación
         }
+
+
 
         private Consejo ToConsejo(ConsejoViewModel view)
         {
-            //Transformamos.
             return new Consejo
             {
                 ID_Consejo = view.ID_Consejo,
                 Texto_Consejo = view.Texto_Consejo,
                 Categoria = view.Categoria,
                 Grado_Recomendacion = view.Grado_Recomendacion,
-                Fecha_Creacion = view.Fecha_Creacion,
-                User = view.User,
-                UserId = view.UserId,
+                Fecha_Creacion = view.Fecha_Creacion
+                // Ya no necesitas incluir User ni UserId aquí, ya que serán asignados en el controlador
             };
         }
-
-
 
 
         // GET: Consejos/Edit/5
@@ -151,8 +140,6 @@
                 Categoria = consejo.Categoria,
                 Grado_Recomendacion = consejo.Grado_Recomendacion,
                 Fecha_Creacion = consejo.Fecha_Creacion,
-                User = consejo.User,
-                UserId = consejo.UserId,
             };
         }
 
@@ -161,18 +148,34 @@
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ConsejoViewModel view)
         {
-            // Convertimos la vista a consejo.
-            var consejo = this.ToConsejo(view);
+            // Validamos el estado del modelo antes de proceder
+            if (!ModelState.IsValid)
+            {
+                // Si el estado del modelo no es válido, regresamos a la vista
+                return View(view);
+            }
 
             try
             {
-                // TODO: Cambiar para usuarios logeados, estamos usando un usuario para pruebas unitarias.
-                consejo.User = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com");
+                // Convertimos la vista a consejo
+                var consejo = this.ToConsejo(view);
 
-                // Actualizamos el consejo
+                // Asignar el usuario logueado actual
+                var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+                if (user == null)
+                {
+                    ModelState.AddModelError("", "No se pudo encontrar el usuario.");
+                    return View(view);
+                }
+
+                // Asignar el usuario y el UserId al consejo
+                consejo.User = user;
+                consejo.UserId = user.Id;
+
+                // Actualizamos el consejo en la base de datos
                 await this.consejoRepository.UpdateAsync(consejo);
 
-                // Redirigir al Index después de actualizar. De esta manera vemos reflejados los cambios.
+                // Redirigir al Index después de actualizar
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
@@ -187,10 +190,9 @@
                 }
             }
 
-            // Si hay algún error en el modelo, regresa a la vista de edición con el modelo actual
+            // Si hay algún error, regresa a la vista de edición con el modelo actual
             return View(view);
         }
-
 
         // GET: Consejos/Delete/5
         public async Task <IActionResult> Delete(int? id)
