@@ -77,6 +77,16 @@
         {
             return await this.userManager.CheckPasswordAsync(user, password);
         }
+        //Nuevos metodos
+        public async Task<IdentityResult> UpdateUserAsync(User user)
+        {
+            return await this.userManager.UpdateAsync(user); //En la libreria userManager está el metodo para guardar esos datos. 
+        }
+
+        public async Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword)
+        {
+            return await this.userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+        }
     }
 
 }

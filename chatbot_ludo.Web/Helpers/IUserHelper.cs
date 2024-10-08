@@ -16,6 +16,12 @@
 
         Task<bool> CheckPasswordAsync(User user, string password);
 
+        //Metodos para modificar y actualizar contraseña.
+        Task<IdentityResult> UpdateUserAsync(User user);
+
+        Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword);
+
+
 
     }
 }

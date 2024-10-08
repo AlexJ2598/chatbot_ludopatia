@@ -132,6 +132,81 @@
             return this.View(model);
         }
 
+        //Nuevo metodo para cambiar datos o contraseña del usuario.
+        //GET
+        public async Task<IActionResult> ChangeUser()
+        {
+            var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);//Estamos logeados
+            var model = new ChangeUserViewModel();
+            if (user != null)
+            {
+                model.FirstName = user.FirstName;
+                model.LastName = user.LastName;
+            }
+
+            return this.View(model);
+        }
+        //POST
+        [HttpPost]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
+        {
+            if (this.ModelState.IsValid)
+            {
+                var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);//Buscamos el usuario
+                if (user != null)
+                {
+                    user.FirstName = model.FirstName; //Actualizamos.
+                    user.LastName = model.LastName;
+                    var respose = await this.userHelper.UpdateUserAsync(user); //Actualizamos.
+                    if (respose.Succeeded)
+                    {
+                        this.ViewBag.UserMessage = "User updated!";
+                    }
+                    else
+                    {
+                        this.ModelState.AddModelError(string.Empty, respose.Errors.FirstOrDefault().Description);
+                    }
+                }
+                else
+                {
+                    this.ModelState.AddModelError(string.Empty, "User no found.");//Por cualquier cosa no encontro el usuario.
+                }
+            }
+
+            return this.View(model);
+        }
+        //GET para CHANGE PASSWORD.
+        public IActionResult ChangePassword()
+        {
+            return this.View();
+        }
+        //POST.
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (this.ModelState.IsValid)
+            {
+                var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+                if (user != null)
+                {
+                    var result = await this.userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return this.RedirectToAction("ChangeUser");
+                    }
+                    else
+                    {
+                        this.ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                    }
+                }
+                else
+                {
+                    this.ModelState.AddModelError(string.Empty, "User no found.");
+                }
+            }
+
+            return this.View(model);
+        }
 
     }
 }
