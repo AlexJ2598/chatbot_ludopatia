@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body">
+                    <h1 class="display-4 text-danger">Access Denied</h1>
+                    <p class="lead">Oops! It looks like you don't have permission to access this page.</p>
+                    <hr class="my-4">
+                    <p>If you believe this is a mistake, please contact your administrator.</p>
+                    <a href="javascript:history.back()" class="btn btn-primary btn-lg">Go Back</a>
+                    <a href="/Home/Index" class="btn btn-secondary btn-lg">Return to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+    </style>
+}
+

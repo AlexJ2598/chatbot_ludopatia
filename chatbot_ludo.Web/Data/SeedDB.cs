@@ -23,6 +23,10 @@
         public async Task SeedAsync()
         {
             await this.context.Database.MigrateAsync();
+            //Verificamos si existen los roles.
+            await this.userHelper.CheckRoleAsync("Admin"); //Lo creamos en la interface,
+            await this.userHelper.CheckRoleAsync("Student");
+
 
             //Creamos un usuario.
             var user = await this.userHelper.GetUserByEmailAsync("alexis.hernandez074@gmail.com"); //La busqueda
@@ -42,7 +46,16 @@
                 {
                     throw new InvalidOperationException("Could not create the user in seeder"); //Error.
                 }
+
+                await this.userHelper.AddUserToRoleAsync(user, "Admin"); //Le añadimos perfil de administrador al usuario.
             }
+
+            var isInRole = await this.userHelper.IsUserInRoleAsync(user, "Admin"); //Si existe pero no está en un rol
+            if (!isInRole)
+            {
+                await this.userHelper.AddUserToRoleAsync(user, "Admin");
+            }
+
 
             if (!this.context.Consejos.Any())
             {

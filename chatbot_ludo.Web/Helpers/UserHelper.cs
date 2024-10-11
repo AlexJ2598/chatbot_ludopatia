@@ -12,12 +12,17 @@
         private readonly UserManager<User> userManager;
         private readonly SignInManager<User> signInManager; //Lo inicializamos también para implementarlo. Mismo, no se inyectan en el program porque son nativas del core.
         private readonly ILogger<UserHelper> _logger; //Para el correcto manejo de inicio de sesiones.
+        private readonly RoleManager<IdentityRole> roleManager;
 
-        public UserHelper(UserManager<User> userManager, SignInManager<User> signInManager, ILogger<UserHelper> logger) //Inyectamos en sign para logear y deslogear y el ILoggger para capturar Logs.
+        public UserHelper(UserManager<User> userManager, 
+            SignInManager<User> signInManager, 
+            ILogger<UserHelper> logger,
+            RoleManager<IdentityRole>roleManager) //La rolemanager trabaja con una clase de ellos. No se necesita inyectar en el program, viende de core.
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this._logger = logger;
+            this.roleManager = roleManager;
         }
 
         public async Task<IdentityResult> AddUserAsync(User user, string password)
@@ -97,12 +102,41 @@
                 password,
                 false);
         }
-        //Nuevo metodo:
+        //Nuevo metodo para guardar las Cookies:
         public async Task<ClaimsPrincipal> GetUserPrincipalAsync(User user)
         {
             return await this.signInManager.CreateUserPrincipalAsync(user);
         }
+        //Para los roles.
+        public async Task CheckRoleAsync(string roleName)
+        {
+            //Buscamos si el rol existe.
+            var roleExists = await this.roleManager.RoleExistsAsync(roleName);
+            if (!roleExists) //Si no existe lo crea.
+            {
+                await this.roleManager.CreateAsync(new IdentityRole
+                {
+                    Name = roleName
+                });
+            }
+        }
 
+        public async Task AddUserToRoleAsync(User user, string roleName)
+        {
+            await this.userManager.AddToRoleAsync(user, roleName); //Añadimos el rol.
+        }
+
+        public async Task<bool> IsUserInRoleAsync(User user, string roleName)
+        {
+            return await this.userManager.IsInRoleAsync(user, roleName); //Verificamos si está en un rol.
+        }
+
+        //Para obtener el usuario.
+        public async Task<User> GetUserByUsernameAsync(string username)
+        {
+            // Utilizamos UserManager para buscar al usuario por su nombre de usuario
+            return await this.userManager.FindByNameAsync(username);
+        }
 
     }
 

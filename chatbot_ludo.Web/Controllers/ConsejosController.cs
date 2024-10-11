@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
     using chatbot_ludo.Web.Models;
@@ -14,7 +15,7 @@
     using Web.Data.Entities;
     using Web.Helpers;
 
-    [Authorize] //Para que solo tengan acceso los usuarios logeados.
+    
     public class ConsejosController : Controller
     {
 
@@ -41,19 +42,20 @@
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound");
             }
 
             var consejo = await this.consejoRepository.GetByIdAsync(id.Value); //Modificamos conforme el nombre de los metodos en el repositorio generico <t>
             if (consejo == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound");
             }
 
             return View(consejo);
         }
 
         // GET: Consejos/Create
+        [Authorize(Roles = "Admin")] //Tiene que ser un administrador.
         public IActionResult Create()
         {
             return View();
@@ -71,9 +73,8 @@
 
             // Convertimos el ViewModel a entidad Consejo, pero sin User ni UserId
             var consejo = this.ToConsejo(view);
-
             // Asignar el usuario actual logueado
-            var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+            var user = await this.userHelper.GetUserByUsernameAsync(this.User.Identity.Name);
             if (user == null)
             {
                 ModelState.AddModelError("", "No se pudo encontrar el usuario.");
@@ -113,17 +114,18 @@
 
 
         // GET: Consejos/Edit/5
+        [Authorize(Roles = "Admin")] //Tiene que ser un administrador.
         public async Task <IActionResult> Edit(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound"); //Redireccionamos para cuando por URL no vaya id o sea un id que no existe nos mande a que no existe el consejo.
             }
 
             var consejo = await this.consejoRepository.GetByIdAsync(id.Value);
             if (consejo == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound");
             }
             //Vamos aquí a hacer lo contrario a crear, osea, convertir el producto a vista, no a producto.
             var view = this.ToConsejoViewModel(consejo);
@@ -161,7 +163,7 @@
                 var consejo = this.ToConsejo(view);
 
                 // Asignar el usuario logueado actual
-                var user = await this.userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+                var user = await this.userHelper.GetUserByUsernameAsync(this.User.Identity.Name);
                 if (user == null)
                 {
                     ModelState.AddModelError("", "No se pudo encontrar el usuario.");
@@ -195,17 +197,18 @@
         }
 
         // GET: Consejos/Delete/5
+        [Authorize(Roles = "Admin")] //Tiene que ser un administrador. Solo a los get, no hay post si no pasa el get.
         public async Task <IActionResult> Delete(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound");
             }
 
             var consejo = await this.consejoRepository.GetByIdAsync(id.Value);
             if (consejo == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("ProductNotFound");
             }
 
             return View(consejo);
@@ -221,5 +224,11 @@
             return RedirectToAction(nameof(Index));
 
         }
+        //Para redireccionar:
+        public IActionResult ProductNotFound()
+        {
+            return this.View();
+        }
+
     }
 }

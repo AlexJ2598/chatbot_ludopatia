@@ -6,8 +6,13 @@
     <title>@ViewData["Title"] - chatbot_ludo.Web</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link href="~/node_modules/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="~/chatbot_ludo.Web.styles.css" asp-append-version="true" />
+
+    <!-- Renderizar la sección Styles si está definida -->
+    @RenderSection("Styles", required: false)
 </head>
+
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">

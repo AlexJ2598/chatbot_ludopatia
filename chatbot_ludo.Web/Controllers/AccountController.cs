@@ -292,5 +292,10 @@
             // Si algo falla (usuario no encontrado, contraseña incorrecta, etc.), devolvemos un BadRequest
             return this.BadRequest();
         }
+        //Para cuando un usuario sin permisos necesarios quiera acceder.
+        public IActionResult NoAuthorized()
+        {
+            return this.View();
+        }
     }
 }

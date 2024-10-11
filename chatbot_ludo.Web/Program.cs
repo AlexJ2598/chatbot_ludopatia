@@ -50,7 +50,8 @@ builder.Services.AddAuthentication(options =>
     // Configuración de cookies
     options.Cookie.SameSite = SameSiteMode.Lax;  // 'Lax' debería ser lo suficientemente permisivo en la mayoría de los casos.
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;  // Solo enviar cookies seguras en HTTPS
-    options.LoginPath = "/Account/Login";  // Ruta para redirigir al login
+    options.AccessDeniedPath = "/Account/NoAuthorized";  // Ruta para redirigir cuando el usuario no tenga acceso
+	options.LoginPath = "/Account/NoAuthorized";  // Ruta para redirigir al login
     options.ExpireTimeSpan = TimeSpan.FromDays(15);  // Duración de la cookie de sesión
     options.SlidingExpiration = true;  // Renovar la cookie en cada solicitud
 })
@@ -85,6 +86,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// Redirigir páginas de error, como 404 o 500, a una página personalizada
+app.UseStatusCodePagesWithReExecute("/error/{0}");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

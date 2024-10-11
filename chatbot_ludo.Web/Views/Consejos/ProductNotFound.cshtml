@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Product Not Found";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <img src="https://via.placeholder.com/150" alt="Product Not Found" class="img-fluid mb-4" />
+            <h1 class="display-4 text-danger">Oops!</h1>
+            <h2 class="mb-4">Resource Not Found</h2>
+            <p class="lead">We couldn't find the product you're looking for. It might have been removed or the ID is incorrect.</p>
+            <a href="/" class="btn btn-primary mt-4">
+                <i class="fa fa-home"></i> Go Back to Home
+            </a>
+            <a href="/Consejos" class="btn btn-secondary mt-4">
+                <i class="fa fa-search"></i> Consejos Page
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        h1.display-4 {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+        }
+    </style>
+}
+
+

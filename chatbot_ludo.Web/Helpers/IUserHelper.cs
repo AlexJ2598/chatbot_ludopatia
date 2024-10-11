@@ -8,6 +8,8 @@
     public interface IUserHelper
     {
         Task<User> GetUserByEmailAsync(string email);
+        //Para obtener por UserName
+        Task<User> GetUserByUsernameAsync(string username);
 
         Task<IdentityResult> AddUserAsync(User user, string password);
 
@@ -25,7 +27,11 @@
 
         //Metodo para las token:
         Task<SignInResult> ValidatePasswordAsync(User user, string password); //Para validar el password: 
-        //Arreglando eso:
+        //Arreglando para las cokkies:
         Task<ClaimsPrincipal> GetUserPrincipalAsync(User user);
+        //Para los roles.
+        Task CheckRoleAsync(string roleName);
+        Task AddUserToRoleAsync(User user, string roleName);
+        Task<bool> IsUserInRoleAsync(User user, string roleName);
     }
 }
