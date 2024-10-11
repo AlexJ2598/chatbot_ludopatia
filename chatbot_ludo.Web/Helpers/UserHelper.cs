@@ -1,5 +1,6 @@
 ﻿namespace chatbot_ludo.Web.Helpers
 {
+    using System.Security.Claims;
     using System.Threading.Tasks;
     using chatbot_ludo.Web.Models;
     using Data.Entities;
@@ -87,6 +88,22 @@
         {
             return await this.userManager.ChangePasswordAsync(user, oldPassword, newPassword);
         }
+
+        //Metodo nuevo para las token:
+        public async Task<SignInResult> ValidatePasswordAsync(User user, string password)
+        {
+            return await this.signInManager.CheckPasswordSignInAsync(
+                user,
+                password,
+                false);
+        }
+        //Nuevo metodo:
+        public async Task<ClaimsPrincipal> GetUserPrincipalAsync(User user)
+        {
+            return await this.signInManager.CreateUserPrincipalAsync(user);
+        }
+
+
     }
 
 }

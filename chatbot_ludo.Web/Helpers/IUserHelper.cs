@@ -3,6 +3,8 @@
     using Microsoft.AspNetCore.Identity;
     using Data.Entities;
     using Models;
+    using System.Security.Claims;
+
     public interface IUserHelper
     {
         Task<User> GetUserByEmailAsync(string email);
@@ -21,7 +23,9 @@
 
         Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword);
 
-
-
+        //Metodo para las token:
+        Task<SignInResult> ValidatePasswordAsync(User user, string password); //Para validar el password: 
+        //Arreglando eso:
+        Task<ClaimsPrincipal> GetUserPrincipalAsync(User user);
     }
 }

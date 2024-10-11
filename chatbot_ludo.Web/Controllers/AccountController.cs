@@ -5,15 +5,23 @@
     using Models;
     using Microsoft.AspNetCore.Identity;
     using Data.Entities;
+    using Microsoft.IdentityModel.Tokens;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
+    using System.Text;
+    using Microsoft.AspNetCore.Authentication.Cookies;
+    using Microsoft.AspNetCore.Authentication;
 
     public class AccountController : Controller //Heredamos para que indiquemos que es un controlador.
     {
         private readonly IUserHelper userHelper; //Inicializamos.
+        private readonly IConfiguration configuration; //Inicializamos para la configuración de las token.
 
         //Inyectamos el UserHelper.
-        public AccountController(IUserHelper userHelper)
+        public AccountController(IUserHelper userHelper, IConfiguration configuration)
         {
             this.userHelper = userHelper;
+            this.configuration = configuration;
         }
         //Metodo login para cuando lo creemos. Este es el GET
         public IActionResult Login() //Todos los controladores devuelven un ActionResult.
@@ -26,7 +34,6 @@
 
             return this.View(); //No login, manda a la vista para logear.
         }
-        //Post
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -52,11 +59,29 @@
                 var result = await this.userHelper.LoginAsync(model);
                 if (result.Succeeded)
                 {
+                    // Crear el ClaimsPrincipal manualmente para establecer la cookie
+                    var userPrincipal = await this.userHelper.GetUserPrincipalAsync(user);
+
+                    // Configurar las propiedades de autenticación para la cookie
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = model.RememberMe, // Si el usuario seleccionó "Remember Me", la sesión será persistente
+                        ExpiresUtc = model.RememberMe ? DateTime.UtcNow.AddDays(15) : DateTime.UtcNow.AddHours(1) // Si "Remember Me" está activado, la cookie durará 15 días, de lo contrario, 1 hora
+                    };
+
+                    // Crear la cookie de autenticación
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        userPrincipal, // Pasamos el ClaimsPrincipal del usuario
+                        authProperties); // Aplicamos las propiedades de autenticación
+
+                    // Redirigir si hay una URL de retorno en la solicitud
                     if (this.Request.Query.Keys.Contains("ReturnUrl"))
                     {
                         return this.Redirect(this.Request.Query["ReturnUrl"].First());
                     }
 
+                    // Redirigir al home si no hay URL de retorno
                     return this.RedirectToAction("Index", "Home");
                 }
 
@@ -67,15 +92,16 @@
             return this.View(model);
         }
 
-
-
-
         //Metodo logout
         public async Task<IActionResult> Logout()
         {
-            await this.userHelper.LogoutAsync(); //Deslogeamos
-            return this.RedirectToAction("Index", "Home"); //Vamos al index
+            // Cierra la sesión y elimina las cookies de autenticación.
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            // Redirige al usuario al inicio o a cualquier página que desees.
+            return this.RedirectToAction("Index", "Home");
         }
+
         //Metodo para registrar.
         public IActionResult Register() //Se llama igual que en el formulario.Debe coincidir.
         {
@@ -208,5 +234,63 @@
             return this.View(model);
         }
 
+        //Metodo para la generación de token: 
+        [HttpPost]
+        public async Task<IActionResult> CreateToken([FromBody] LoginViewModel model)
+        {
+            // Verificamos si el modelo es válido (ej: si los campos requeridos están presentes)
+            if (this.ModelState.IsValid)
+            {
+                // Intentamos obtener al usuario con el email proporcionado en el modelo de login
+                var user = await this.userHelper.GetUserByEmailAsync(model.Username);
+
+                // Si el usuario existe
+                if (user != null)
+                {
+                    // Validamos si la contraseña es correcta utilizando el método ValidatePasswordAsync
+                    var result = await this.userHelper.ValidatePasswordAsync(user, model.Password);
+
+                    // Si la validación de la contraseña fue exitosa
+                    if (result.Succeeded)
+                    {
+                        // Creamos un array de claims que representan la identidad del usuario
+                        // Aquí puedes agregar más claims si lo necesitas, como roles o permisos
+                        var claims = new[]
+                        {
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email), // Sub es el claim que representa al sujeto (usuario)
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Jti es el identificador único del token
+                };
+
+                        // Obtenemos la clave de firma desde el archivo de configuración
+                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.configuration["Tokens:Key"]));
+
+                        // Creamos las credenciales de firma usando la clave y el algoritmo HMAC-SHA256
+                        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                        // Generamos el token JWT con la información del issuer, audience, claims, tiempo de expiración y las credenciales de firma
+                        var token = new JwtSecurityToken(
+                            this.configuration["Tokens:Issuer"],   // Emisor del token
+                            this.configuration["Tokens:Audience"], // Público objetivo del token
+                            claims,                                // Claims del usuario
+                            expires: DateTime.UtcNow.AddDays(15),  // Fecha de expiración (15 días en este caso)
+                            signingCredentials: credentials        // Credenciales de firma (clave secreta y algoritmo)
+                        );
+
+                        // Creamos el resultado con el token JWT en formato string y la fecha de expiración
+                        var results = new
+                        {
+                            token = new JwtSecurityTokenHandler().WriteToken(token), // Convertimos el token a string
+                            expiration = token.ValidTo  // Fecha de expiración del token
+                        };
+
+                        // Devolvemos una respuesta HTTP 201 (Created) con el token generado y su fecha de expiración
+                        return this.Created(string.Empty, results);
+                    }
+                }
+            }
+
+            // Si algo falla (usuario no encontrado, contraseña incorrecta, etc.), devolvemos un BadRequest
+            return this.BadRequest();
+        }
     }
 }

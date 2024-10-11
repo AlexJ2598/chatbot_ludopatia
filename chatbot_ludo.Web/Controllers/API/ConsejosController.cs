@@ -1,11 +1,14 @@
 ﻿namespace chatbot_ludo.Web.Controllers.API
 {
-    using chatbot_ludo.Web.Data;
-    using chatbot_ludo.Web.DTO; //Para simplificar el consumo de JSON
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Linq;
+    using Data;
+    using DTO; //Para simplificar el consumo de JSON
 
     [Route("api/[Controller]")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ConsejosController : Controller
     {
         private readonly IConsejoRepository consejoRepository;
